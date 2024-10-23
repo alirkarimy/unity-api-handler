@@ -41,7 +41,7 @@ namespace Alec.Api
 
             });
 
-            AlecListener.WebCoreInitializeStarted?.Invoke();
+            AlecListener.WebCoreInitialized?.Invoke();
 
         }
         public static void SetBaseUrl(string baseUrl)

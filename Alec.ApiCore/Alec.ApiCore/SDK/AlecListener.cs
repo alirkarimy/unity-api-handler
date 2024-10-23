@@ -7,7 +7,7 @@ namespace Alec.Api
         /// <summary>
         /// Occures when WebCore initializations input params receive correctly
         /// </summary>
-        public static Action WebCoreInitializeStarted;
+        public static Action WebCoreInitialized;
         public static Action<string> WebCoreInitializeFailed;
 
         public static Action<AppConfigModel> OnAppConfigReceived;
