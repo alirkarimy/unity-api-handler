@@ -43,22 +43,6 @@ namespace Alec.Api
 
         }
       
-        public static void GetAppConfig(string connectionData)
-        {
-            AppConfigApi api = new AppConfigApi();
-
-            api.FormData = new Dictionary<string, string>
-            {
-                { "current_version", AppConfig.CURRENT_VERSION },
-                { "os_version", AppConfig.OS_VERSION },
-                { "os_name", AppConfig.OS_NAME }
-            };
-
-            if (!string.IsNullOrEmpty(connectionData))
-                api.FormData.Add("connectoindata", connectionData);
-            
-            WebCore.Post<Response<AppConfigModel>>(api);
-        }
       
         public static void UpdatePlayer(int playerId, int familyRelationShip, int grade, string firstName, string lastName, string birthDay, int gender, int avatarId, int appUsageLimitMinute)
         {

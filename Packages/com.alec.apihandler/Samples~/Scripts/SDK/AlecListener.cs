@@ -10,9 +10,6 @@ namespace Alec.Api
         public static Action WebCoreInitialized;
         public static Action<string> WebCoreInitializeFailed;
 
-        public static Action<AppConfigModel> OnAppConfigReceived;
-        public static Action<ResponseStatus, string> OnAppConfigFailed;
-
         public static Action<string> OnUserRegisterRecived;
         public static Action<ResponseStatus, string> OnUserRegisterFailed;
 
