@@ -1,0 +1,50 @@
+{
+  "name": "com.alec.apihandler",
+  "version": "1.0.0",
+  "displayName": "API Handler",
+  "description": "A robust solution for handling HTTP/HTTPS API requests in Unity games with JSON parsing, error handling, and caching support",
+  "unity": "2021.3",
+  "documentationUrl": "https://github.com/alirkarimy/unity-api-handler/wiki",
+  "changelogUrl": "https://github.com/alirkarimy/unity-api-handler/releases",
+  "licensesUrl": "https://github.com/alirkarimy/unity-api-handler/blob/main/LICENSE",
+
+  "keywords": [
+    "api",
+    "http",
+    "rest",
+    "webrequest",
+    "networking",
+    "json"
+  ],
+
+  "author": {
+    "name": "Alec",
+    "email": "ali.r.karimy@gmail.com",
+    "url": "https://zfun.com"
+  },
+
+  "dependencies": {
+    "com.unity.nuget.newtonsoft-json": "3.2.1",
+    "com.unity.modules.unitywebrequest": "1.0.0",
+    "com.unity.modules.unitywebrequestassetbundle": "1.0.0",
+    "com.unity.modules.unitywebrequesttexture": "1.0.0"
+  },
+
+  "samples": [
+    {
+      "displayName": "Basic API Example",
+      "description": "Demonstrates GET/POST requests with error handling",
+      "path": "Samples~"
+    },
+    {
+      "displayName": "Advanced Caching",
+      "description": "Shows request caching with expiration",
+      "path": "Samples~/AdvancedCaching"
+    }
+  ],
+
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alirkarimy/unity-api-handler.git"
+  }
+}
