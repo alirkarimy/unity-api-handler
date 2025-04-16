@@ -15,7 +15,7 @@ public class AlecApiHandlerTest : MonoBehaviour
     }
     public void SendSampleAPI()
     {
-        AlecNetwork.GetAppConfig("ConnectionData");
+        AlecNetwork.GetProfile();
     }
    
 }
