@@ -8,7 +8,7 @@ namespace Alec.Api
     {
         public string Route => "/users";
 
-        public string ApiVersion => "2";
+        public string ApiVersion => "1";
 
         public Dictionary<string, string> Params { get; set; } = default;
 
