@@ -8,8 +8,8 @@ namespace Alec.Core
     {
         #region Url Paths
 
-        public static string BASE_URL = "https://dev-api.Alecgames.ir";
-        private const string API_VERSION = "/api/v";
+        public static string BASE_URL = "https://puzzle-api.booaligames.ir";
+        private const string API_VERSION = "v{0}/api/app";
 
         #endregion
         public static string CurrentUrl => BASE_URL;
@@ -26,11 +26,12 @@ namespace Alec.Core
             {
                 route = string.Concat("/", route);
             }
-            return string.Concat(BASE_URL, API_VERSION, req.ApiVersion, route);
+            return string.Concat(BASE_URL,string.Format(API_VERSION, req.ApiVersion), route);
         }
 
-        public static string EncodeGetUrl(string url, Dictionary<string, string> parameters)
+        public static string EncodeGetUrl(IRequest req, Dictionary<string, string> parameters)
         {
+            string url = BuildUrl(req);
             if (parameters != null && parameters.Count > 0)
                 return $"{url}?{string.Join("&", parameters.Select(kvp => $"{kvp.Key}={UnityWebRequest.EscapeURL(kvp.Value)}"))}";
             else

@@ -1,5 +1,4 @@
 ﻿using Alec.Api;
-using Alec.Core;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -13,7 +12,7 @@ namespace Alec.Core
     {
         private static Dictionary<string, string> HEADERS = new Dictionary<string, string>();
         private static MonoBehaviour _mono;
-        private static Action OnTokenExpired;
+        public static event Action OnTokenExpired;
 
         private static bool _isInitialized => _mono != null && HEADERS.Count > 0;
 
@@ -24,15 +23,16 @@ namespace Alec.Core
         /// Set HEADERS for ongoing requests
         /// </summary>
         /// <param name="headers">It is a list of key value pairs contaiting headers inforamtions</param>
-        public static bool Initialize(MonoBehaviour mono, Dictionary<string, string> headers)
+        public static bool Initialize(MonoBehaviour mono,string baseUrl, Dictionary<string, string> headers)
         {
             _mono = mono;
+            UrlUtils.SetBaseUrl(baseUrl);
             HEADERS = headers;
             return true;
         }
 
 
-        public static void AddHeaders(Dictionary<string, string> headers)
+        public static void AddOrUpdateHeaders(Dictionary<string, string> headers)
         {
             foreach (KeyValuePair<string, string> header in headers)
             {
@@ -87,20 +87,29 @@ namespace Alec.Core
           
             SetRequestHeaders(request);
 
-          //  Debug.Log("Sending Request To " + request.url);
+            Debug.Log(DataUtils.GetCurlCommand(request,HEADERS));
             request.timeout = 20;
             yield return request.SendWebRequest();
 
-            if (request.isNetworkError)
+            if (request.result == UnityWebRequest.Result.ConnectionError)
             {
                 // TODO : Invoke callback with network error code
                 // Consider sharing this reason with the user to guide their troubleshooting actions.
                 Debug.Log($"Network Error {request.error}");
-                ErrorResponse error = new ErrorResponse(ResponseStatus.INTERNET_ERROR,request.error);
+                ErrorResponse error = new ErrorResponse(ResponseStatus.INTERNET_ERROR, request.error);
 
                 req.OnResponse(JsonUtility.FromJson<T>(JsonUtility.ToJson(error)));
             }
-            else if (request.isHttpError)
+            else if (request.result == UnityWebRequest.Result.DataProcessingError)
+            {
+                // TODO : Invoke callback with network error code
+                // Consider sharing this reason with the user to guide their troubleshooting actions.
+                Debug.Log($"DataProcessingError Error {request.error}");
+                ErrorResponse error = new ErrorResponse(ResponseStatus.DataProcessingError, request.error);
+
+                req.OnResponse(JsonUtility.FromJson<T>(JsonUtility.ToJson(error)));
+            }
+            else if (request.result == UnityWebRequest.Result.ProtocolError)
             {
                 // TODO : Invoke callback with http error code
                 // Consider sharing this reason with the user to guide their troubleshooting actions.
@@ -109,8 +118,8 @@ namespace Alec.Core
                 if (request.responseCode == 401)
                     OnTokenExpired?.Invoke();
                 else
-                { 
-                    ErrorResponse error = new ErrorResponse(ResponseStatus.HTTP_ERROR, request.error); 
+                {
+                    ErrorResponse error = new ErrorResponse(ResponseStatus.HTTP_ERROR, request.error);
                     req.OnResponse(JsonUtility.FromJson<T>(JsonUtility.ToJson(error)));
                 }
 
@@ -120,13 +129,13 @@ namespace Alec.Core
                 //Debugger.Log("Successful with code : " + request.responseCode);
                 byte[] result = request.downloadHandler.data;
                 string responseJSON = System.Text.Encoding.Default.GetString(result);
-              //  Debug.Log($"response json : {responseJSON}");
+                //  Debug.Log($"response json : {responseJSON}");
                 T responseObject = null;
-                try 
+                try
                 {
                     responseObject = JsonUtility.FromJson<T>(responseJSON);
                 }
-                catch (Exception ex) 
+                catch (Exception ex)
                 {
                     ErrorResponse error = new ErrorResponse(ResponseStatus.MODEL_MISMATCH_ERR, $"Failed to deserialize {typeof(T).ToString()}");
                     responseObject = JsonUtility.FromJson<T>(JsonUtility.ToJson(error));
@@ -135,7 +144,12 @@ namespace Alec.Core
                 if (responseObject.Status == ResponseStatus.NOT_AUTHENTICATED)
                     OnTokenExpired?.Invoke();
                 else
+                {
+                    Debug.Log($"Response Body:\n{responseJSON}");
+                    Debug.Log($"Response Headers:\n{DataUtils.ConvertToJSON( request.GetResponseHeaders())}");
                     req.OnResponse(responseObject);
+
+                }
 
             }
             request?.Dispose();

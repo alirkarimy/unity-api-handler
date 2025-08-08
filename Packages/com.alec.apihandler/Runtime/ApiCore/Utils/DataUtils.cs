@@ -1,6 +1,9 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
+using System.Text;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace Alec.Core
 {
@@ -8,8 +11,7 @@ namespace Alec.Core
     {
         public static string ConvertToJSON(Dictionary<string, string> dictionary)
         {
-            //TODO : 
-            return "";
+            return JsonConvert.SerializeObject(dictionary);
         }
 
         public static string ConvertToJSON<T>(T model)
@@ -17,7 +19,28 @@ namespace Alec.Core
             //TODO : 
             return JsonUtility.ToJson(model);
         }
+        public static string GetCurlCommand(UnityWebRequest request,Dictionary<string,string > headers)
+        {
+            StringBuilder curlCommand = new StringBuilder("curl");
 
+            // Add URL
+            curlCommand.Append($" -X {request.method} '{request.url}'");
+
+            // Add Headers
+            foreach (string header in headers.Keys)
+            {
+                curlCommand.Append($" -H '{header}: {request.GetRequestHeader(header)}'");
+            }
+
+            // Add POST/PUT data (if any)
+            if (request.uploadHandler != null && request.uploadHandler.data != null && request.uploadHandler.data.Length > 0)
+            {
+                string postData = Encoding.UTF8.GetString(request.uploadHandler.data);
+                curlCommand.Append($" --data-raw '{postData}'");
+            }
+
+            return curlCommand.ToString();
+        }
         public static void GetValue(KeyValuePair[] pairs, string key, ref string value)
         {
             string val = GetValue(pairs, key);

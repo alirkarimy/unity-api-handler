@@ -12,7 +12,7 @@ namespace Alec.Api
         private static bool _isInitialized = false;
         public static bool IsInitialized { get { return _isInitialized; } }
 
-        public static void Initialize(string baseUrl, string clinetId, string clientSecret, string deviceUUID, string storeName, string apkVersion, string osVersion, string osName, MonoBehaviour mono)
+        public static void Initialize(string baseUrl, string deviceUUID, string appVersion, MonoBehaviour mono)
         {
 
             if (IsInitialized)
@@ -20,27 +20,27 @@ namespace Alec.Api
                 return;
             }
 
-            if (mono == null || DataUtils.IsNullOrEmpty(baseUrl, clinetId, clientSecret, deviceUUID, storeName, apkVersion, osVersion, osName))
+            if (mono == null || DataUtils.IsNullOrEmpty(baseUrl, deviceUUID, appVersion))
             {
                 AlecListener.WebCoreInitializeFailed?.Invoke("Not Valid Arguments To Intialize WebCore");
             }
-            AppConfig.OS_NAME = osName;
-            AppConfig.OS_VERSION = osVersion;
-            AppConfig.CURRENT_VERSION = apkVersion;
-            UrlUtils.SetBaseUrl(baseUrl);
+            AppConfig.OS_NAME = "android";
+            AppConfig.OS_VERSION = "-1";
+            AppConfig.APP_VERSION = appVersion;
            
-            WebCore.Initialize(mono,new Dictionary<string, string> {
+            WebCore.OnTokenExpired += AlecListener.OnTokenExpired;
+            WebCore.Initialize(mono,baseUrl,new Dictionary<string, string> {
 
-                { "store-name", storeName },
                 { "Accept", "application/json" },
-                { "client-id", clinetId },
-                { "client-secret", clientSecret },
-                { "device-uuid", deviceUUID }
+                { "Content-Type", "application/json" },
+                { "device-uuid", deviceUUID },
+                { "language", deviceUUID },
+                { "appVersion", appVersion },
+                { "firebase-token", deviceUUID }
 
             });
 
             AlecListener.WebCoreInitialized?.Invoke();
-
         }
       
         public static void UpdatePlayer(int playerId, int familyRelationShip, int grade, string firstName, string lastName, string birthDay, int gender, int avatarId, int appUsageLimitMinute)
@@ -59,10 +59,20 @@ namespace Alec.Api
             });
             WebCore.Put(api);
         }
+        public static void SignupAsGuest(string name)
+        {
+            SignupApi signupApi = new SignupApi();
+            signupApi.JSONData = DataUtils.ConvertToJSON(new Dictionary<string, string>
+            {
+                {"name", name} 
+            });
+            WebCore.Post< Response<UserDataModel>>(signupApi);
+
+        }
         public static void GetUserProfile()
         {
             GetUserProfileApi api = new GetUserProfileApi();
-            WebCore.Get< Response<GetUserProfileApiModel>>(api);
+            WebCore.Get< Response<UserDataModel>>(api);
         }
         public static void LoginWithPassword(string mobileNumber, string mobileNumberPrefix, string password,string clientToken,string clientSecret)
         {
@@ -72,7 +82,7 @@ namespace Alec.Api
                 {"mobile_number_prefix", mobileNumberPrefix},
                 {"grant_type", "password_grant"},
                 {"password", password},
-                {"current_version", AppConfig.CURRENT_VERSION},
+                {"current_version", AppConfig.APP_VERSION},
                 {"client_id", clientToken},
                 {"client_secret", clientSecret}
 
@@ -87,7 +97,7 @@ namespace Alec.Api
                 {"mobile_number_prefix", mobileNumberPrefix},
                 {"grant_type", "otp_grant"},
                 {"otp", Otp},
-                {"current_version", AppConfig.CURRENT_VERSION},
+                {"current_version", AppConfig.APP_VERSION},
                 {"client_id", clientToken},
                 {"client_secret", clientSecret}
             });
@@ -100,7 +110,7 @@ namespace Alec.Api
                 {"mobile_number_prefix", mobileNumberPrefix},
                 {"grant_type", "refresh_token"},
                 {"refresh_token", refreshToken},
-                {"current_version", AppConfig.CURRENT_VERSION},
+                {"current_version", AppConfig.APP_VERSION},
                 {"client_id", clientToken},
                 {"client_secret", clientSecret}
             });

@@ -1,9 +1,11 @@
 ﻿using System;
 using Alec.Api;
+using Alec.Core;
 namespace Alec.Api
 {
     public class AlecListener
     {
+      
         /// <summary>
         /// Occures when WebCore initializations input params receive correctly
         /// </summary>
@@ -16,14 +18,17 @@ namespace Alec.Api
         public static Action<LoginModel> OnLoginRecived;
         public static Action<ResponseStatus, string> OnLoginFailed;
 
-        public static Action<GetUserProfileApiModel> OnGetUserProfileRecived;
-        public static Action<ResponseStatus, string> OnGetUserProfileFailed;
+        public static Action<UserDataModel> OnUserProfileRecived;
+        public static Action<ResponseStatus, string> OnUserProfileFailed;
+
+        public static Action<UserDataModel> OnSignup;
+        public static Action<ResponseStatus, string> OnSignupFailed;
 
         public static Action<string> OnUpdatePlayerRecived;
-        public static Action<ResponseStatus, string>  OnUpdatePlayerFailed;
+        public static Action<ResponseStatus, string> OnUpdatePlayerFailed;
 
 
-    public static Action OnTokenExpired;
+        public static Action OnTokenExpired;
 
     }
 }

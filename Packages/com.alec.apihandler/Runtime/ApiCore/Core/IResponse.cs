@@ -1,7 +1,10 @@
 ﻿using Alec.Api;
 using Alec.Utils;
 using System;
+using UnityEditor.PackageManager.Requests;
+using UnityEditor.VersionControl;
 using UnityEngine;
+using static System.Net.WebRequestMethods;
 
 namespace Alec.Core
 {
@@ -30,13 +33,23 @@ namespace Alec.Core
 
         /// <summary>
         /// If a request was unsuccessful, this shows the cause of error happened in the process.
+        /// nullable: true
         /// </summary>
         string Message { get; }
+
+        DateTime Date { get; }
+
+        int Code { get; }
+        /// <summary>
+        /// Not Ok response message
+        /// nullable: true
+        /// </summary>
+        string Error { get; }
 
     }
 
     [Serializable]
-    public class Response<T> :Response, IResponse<T>
+    public class Response<T> : Response, IResponse<T>
     {
         [SerializeField] protected T data;
 
@@ -46,13 +59,19 @@ namespace Alec.Core
     [Serializable]
     public class Response : IResponse
     {
+        [SerializeField] protected DateTime date;
+        [SerializeField] protected int code;
+        [SerializeField] protected string status;
         [SerializeField] protected string message;
-        [SerializeField] protected bool success;
-        [SerializeField] protected int error_code;
+        [SerializeField] protected string error;
 
-        public ResponseStatus Status { get { try { return success ? ResponseStatus.Successful : (ResponseStatus)error_code; } catch (Exception ex) { return ResponseStatus.UNKNOWN_ERROR; } } }
-
+        public DateTime Date => date;
+        public int Code => code;
+        public ResponseStatus Status { get { try { return Enum.Parse<ResponseStatus>(status) == ResponseStatus.SUCCEED
+                                            ? ResponseStatus.SUCCEED : (ResponseStatus)code; } 
+                                            catch (Exception ex) { return ResponseStatus.UNKNOWN_ERROR; } } }
         public string Message => message;
+        public string Error => error;
     }
 
 }

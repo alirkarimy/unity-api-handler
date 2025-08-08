@@ -15,7 +15,7 @@ namespace Alec.Api
 
         public void OnResponse(Response<LoginModel> result)
         {
-            if (result.Status == ResponseStatus.Successful)
+            if (result.Status == ResponseStatus.SUCCEED)
             {
                 AlecListener.OnLoginRecived?.Invoke(result.Body);
             }

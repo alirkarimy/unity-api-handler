@@ -4,40 +4,58 @@ using System.Collections.Generic;
 
 namespace Alec.Api
 {
-    public class GetUserProfileApi : IGetRequest<Response<GetUserProfileApiModel>>
+    public class GetUserProfileApi : IGetRequest<Response<UserDataModel>>
     {
-        public string Route => "/users";
+        public string Route => "/auth";
 
-        public string ApiVersion => "2";
+        public string ApiVersion => "1";
 
         public Dictionary<string, string> Params { get; set; } = default;
 
-        public void OnResponse(Response<GetUserProfileApiModel> result)
+        public void OnResponse(Response<UserDataModel> result)
         {
-            if (result.Status == ResponseStatus.Successful)
+            if (result.Status == ResponseStatus.SUCCEED)
             {
-                AlecListener.OnGetUserProfileRecived?.Invoke(result.Body);
+                AlecListener.OnUserProfileRecived?.Invoke(result.Body);
             }
             else
             {
-                AlecListener.OnGetUserProfileFailed?.Invoke(result.Status, result.Message);
+                AlecListener.OnUserProfileFailed?.Invoke(result.Status, result.Message);
             }
         }
     }
 
     [Serializable]
-    public class GetUserProfileApiModel 
+    public class UserDataModel
     {
-        public int id;
-        public string mobile_number_prefix;
-        public string mobile_number;
-        public string first_name;
-        public string last_name;
-        public int city_id;
-        public string city;
-        public string country;
-        public int birthday;
-        public int gender;
+        public User User { get; set; }
+        public Session Session { get; set; }
     }
+    [Serializable]
 
+    public class User
+    {
+        public string Id { get; set; }
+        public string Name { get; set; }
+        public string Mobile { get; set; }
+        public bool IsActive { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
+    }
+    [Serializable]
+
+    public class Session
+    {
+        public string Id { get; set; }
+        public string RefId { get; set; }
+        public DateTime RefreshExpiresAt { get; set; }
+        public string FirebaseToken { get; set; }
+        public string AppVersion { get; set; }
+        public string Os { get; set; }
+        public string Platform { get; set; }
+        public string Ip { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
+    }
 }
+

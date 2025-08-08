@@ -9,7 +9,8 @@ namespace Alec.Api
     public enum ResponseStatus
     {
         UNKNOWN_ERROR = 0,
-        Successful = 1,
+        SUCCEED = 1,
+        FAILED = 2,
         INVALID_APP = 100,
         INVALID_VERSION = 101,
         INVALID_OTP = 103,
@@ -35,12 +36,21 @@ namespace Alec.Api
         FCM_TOKEN_IS_EMPTY = 123,
         PLAYER_DOSES_NOT_EXIT = 124,
         OTP_LIMIT_TIME = 125,
+        BAD_REQUEST = 400,
         NOT_AUTHENTICATED = 401,
+        PERMISSION_DENIED = 403,
         DEVICE_NOT_FOUND = 404,
+        CONTENT_ERROR = 415,
+        //
+        // Summary:
+        //     Error processing data. The request succeeded in communicating with the server,
+        //     but encountered an error when processing the received data. For example, the
+        //     data was corrupted or not in the correct format.
+        DataProcessingError = 499,
         SERVER_ERROR = 500,
         INTERNET_ERROR = 600,
         HTTP_ERROR = 700,
-        MODEL_MISMATCH_ERR = 701
+        MODEL_MISMATCH_ERR = 701,
     }
 
     public enum ContentType
