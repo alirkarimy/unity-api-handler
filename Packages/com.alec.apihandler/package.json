@@ -1,6 +1,6 @@
 {
   "name": "com.alec.apihandler",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "displayName": "API Handler",
   "description": "A robust solution for handling HTTP/HTTPS API requests in Unity games with JSON parsing, error handling, and caching support",
   "unity": "2021.3",
