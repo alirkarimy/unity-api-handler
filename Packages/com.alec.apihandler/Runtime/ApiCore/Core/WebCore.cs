@@ -23,7 +23,7 @@ namespace Alec.Core
         /// Set HEADERS for ongoing requests
         /// </summary>
         /// <param name="headers">It is a list of key value pairs contaiting headers inforamtions</param>
-        public static bool Initialize(MonoBehaviour mono,string baseUrl, Dictionary<string, string> headers)
+        public static bool Initialize(MonoBehaviour mono, string baseUrl, Dictionary<string, string> headers)
         {
             _mono = mono;
             UrlUtils.SetBaseUrl(baseUrl);
@@ -53,7 +53,7 @@ namespace Alec.Core
 
             /*if (string.IsNullOrEmpty(req.JSONData) == false) */
             setRequestBody(req.JSONData, request);
-           
+
             SendRequest(req, request);
 
         }
@@ -84,7 +84,7 @@ namespace Alec.Core
 
         }
 
-        private static void SendRequest<T>(IRequest<T> req, UnityWebRequest request) where T : Response 
+        private static void SendRequest<T>(IRequest<T> req, UnityWebRequest request) where T : Response
         {
             if (!_isInitialized)
             {
@@ -96,10 +96,10 @@ namespace Alec.Core
         }
         private static IEnumerator Send<T>(IRequest<T> req, UnityWebRequest request) where T : Response
         {
-          
+
             SetRequestHeaders(request);
 
-            Debug.Log(DataUtils.GetCurlCommand(request,HEADERS));
+            Debug.Log(DataUtils.GetCurlCommand(request, HEADERS));
             request.timeout = 20;
             yield return request.SendWebRequest();
 
@@ -131,10 +131,30 @@ namespace Alec.Core
                     OnTokenExpired?.Invoke();
                 else
                 {
-                    ErrorResponse error = new ErrorResponse(ResponseStatus.HTTP_ERROR, request.error);
-                    req.OnResponse(JsonUtility.FromJson<T>(JsonUtility.ToJson(error)));
-                }
 
+                    try
+                    {
+                        //Debugger.Log("Successful with code : " + request.responseCode);
+                        byte[] result = request.downloadHandler.data;
+                        string responseJSON = System.Text.Encoding.Default.GetString(result);
+                        //  Debug.Log($"response json : {responseJSON}");
+                        T responseObject = null;
+                        responseObject = JsonUtility.FromJson<T>(responseJSON);
+                        Debug.Log($"Response Body:\n{responseJSON}");
+                        Debug.Log($"Response Headers:\n{DataUtils.ConvertToJSON(request.GetResponseHeaders())}");
+                        ErrorResponse error = new ErrorResponse(ResponseStatus.HTTP_ERROR, request.error);
+                        req.OnResponse(JsonUtility.FromJson<T>(JsonUtility.ToJson(error)));
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.Log($"catched Http Error not encapsulated by server");
+
+                        ErrorResponse error = new ErrorResponse(ResponseStatus.HTTP_ERROR, request.error);
+                        req.OnResponse(JsonUtility.FromJson<T>(JsonUtility.ToJson(error)));
+                    }
+
+
+                }
             }
             else
             {
@@ -158,14 +178,14 @@ namespace Alec.Core
                 else
                 {
                     Debug.Log($"Response Body:\n{responseJSON}");
-                    Debug.Log($"Response Headers:\n{DataUtils.ConvertToJSON( request.GetResponseHeaders())}");
+                    Debug.Log($"Response Headers:\n{DataUtils.ConvertToJSON(request.GetResponseHeaders())}");
                     req.OnResponse(responseObject);
 
                 }
 
             }
             request?.Dispose();
-            
+
         }
 
 
@@ -177,7 +197,7 @@ namespace Alec.Core
         /// <param name="request"> current proccessing request</param>
         private static void setRequestBody(string postData, UnityWebRequest request)
         {
-            byte[] bodyRaw = Encoding.UTF8.GetBytes(postData??"");
+            byte[] bodyRaw = Encoding.UTF8.GetBytes(postData ?? "");
             request.uploadHandler = (UploadHandler)new UploadHandlerRaw(bodyRaw);
             request.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
         }
