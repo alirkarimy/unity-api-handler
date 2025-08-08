@@ -21,7 +21,7 @@ namespace Alec.Api
 
         public void OnResponse(Response result)
         {
-            if (result.Status == ResponseStatus.Successful)
+            if (result.Status == ResponseStatus.SUCCEED)
             {
                 AlecListener.OnUpdatePlayerRecived?.Invoke(result.Message);
             }
