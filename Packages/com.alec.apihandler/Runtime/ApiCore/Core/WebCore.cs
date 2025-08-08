@@ -72,6 +72,16 @@ namespace Alec.Core
 
         }
 
+        public static void Delete<T>(IDeleteRequest<T> req) where T : Response
+        {
+            UnityWebRequest request = new RequestFactory().Delete<T>(req);
+
+            if (string.IsNullOrEmpty(req.JSONData) == false) setRequestBody(req.JSONData, request);
+
+            SendRequest(req, request);
+
+        }
+
         private static void SendRequest<T>(IRequest<T> req, UnityWebRequest request) where T : Response 
         {
             if (!_isInitialized)

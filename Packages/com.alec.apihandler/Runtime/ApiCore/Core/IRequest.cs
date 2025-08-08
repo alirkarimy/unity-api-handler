@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Alec.Core
 {
 
-    public interface IPutRequest<T> : IRequest<T>, IPutRequest where T : IResponse
+    public interface IPutRequest<T> : IRequest<T>, IPutRequestData where T : IResponse
     {
 
     }
@@ -13,6 +13,10 @@ namespace Alec.Core
 
     }
     public interface IPostRequest<T> : IRequest<T>, IRequestPostData where T : IResponse
+    {
+
+    }
+    public interface IDeleteRequest<T> : IRequest<T>, IDeleteRequestData where T : IResponse
     {
 
     }
@@ -49,7 +53,12 @@ namespace Alec.Core
         Dictionary<string, string> Params { set; get; }
     }
 
-    public interface IPutRequest
+    public interface IPutRequestData
+    {
+        string JSONData { set; get; }
+    }
+
+    public interface IDeleteRequestData
     {
         string JSONData { set; get; }
     }

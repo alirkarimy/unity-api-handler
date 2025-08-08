@@ -6,6 +6,11 @@ namespace Alec.Core
 {
     class RequestFactory : IRequestFactory
     {
+        public UnityWebRequest Delete<T>(IDeleteRequest<T> req) where T : Response
+        {
+            return UnityWebRequest.Delete(UrlUtils.BuildUrl(req));
+        }
+
         public UnityWebRequest Get<T>(IGetRequest<T> req) where T : Response
         {
             return UnityWebRequest.Get(UrlUtils.EncodeGetUrl(req, req.Params));
