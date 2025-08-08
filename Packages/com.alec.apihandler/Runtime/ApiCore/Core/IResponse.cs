@@ -1,10 +1,6 @@
 ﻿using Alec.Api;
-using Alec.Utils;
 using System;
-using UnityEditor.PackageManager.Requests;
-using UnityEditor.VersionControl;
 using UnityEngine;
-using static System.Net.WebRequestMethods;
 
 namespace Alec.Core
 {
