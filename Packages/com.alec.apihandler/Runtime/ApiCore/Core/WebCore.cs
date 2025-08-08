@@ -51,7 +51,8 @@ namespace Alec.Core
         {
             UnityWebRequest request = new RequestFactory().Post<T>(req);
 
-            if (string.IsNullOrEmpty(req.JSONData) == false) setRequestBody(req.JSONData, request);
+            /*if (string.IsNullOrEmpty(req.JSONData) == false) */
+            setRequestBody(req.JSONData, request);
            
             SendRequest(req, request);
 
@@ -76,7 +77,8 @@ namespace Alec.Core
         {
             UnityWebRequest request = new RequestFactory().Delete<T>(req);
 
-            if (string.IsNullOrEmpty(req.JSONData) == false) setRequestBody(req.JSONData, request);
+            /*if (string.IsNullOrEmpty(req.JSONData) == false) */
+            setRequestBody(req.JSONData, request);
 
             SendRequest(req, request);
 
@@ -175,7 +177,7 @@ namespace Alec.Core
         /// <param name="request"> current proccessing request</param>
         private static void setRequestBody(string postData, UnityWebRequest request)
         {
-            byte[] bodyRaw = Encoding.UTF8.GetBytes(postData);
+            byte[] bodyRaw = Encoding.UTF8.GetBytes(postData??"");
             request.uploadHandler = (UploadHandler)new UploadHandlerRaw(bodyRaw);
             request.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
         }
