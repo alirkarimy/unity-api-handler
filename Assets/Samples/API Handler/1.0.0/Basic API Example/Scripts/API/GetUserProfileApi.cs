@@ -28,34 +28,34 @@ namespace Alec.Api
     [Serializable]
     public class UserDataModel
     {
-        public User User { get; set; }
-        public Session Session { get; set; }
+        public User user;
+        public Session session;
     }
     [Serializable]
 
     public class User
     {
-        public string Id { get; set; }
-        public string Name { get; set; }
-        public string Mobile { get; set; }
-        public bool IsActive { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
+        public string id;
+        public string name;
+        public string mobile;
+        public bool isActive;
+        public DateTime createdAt;
+        public DateTime updatedAt;
     }
     [Serializable]
 
     public class Session
     {
-        public string Id { get; set; }
-        public string RefId { get; set; }
-        public DateTime RefreshExpiresAt { get; set; }
-        public string FirebaseToken { get; set; }
-        public string AppVersion { get; set; }
-        public string Os { get; set; }
-        public string Platform { get; set; }
-        public string Ip { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public DateTime UpdatedAt { get; set; }
+        public string id;
+        public string refId;
+        public DateTime refreshExpiresAt;
+        public string firebaseToken;
+        public string appVersion;
+        public string os;
+        public string platform;
+        public string ip;
+        public DateTime createdAt;
+        public DateTime updatedAt;
     }
 }
 
