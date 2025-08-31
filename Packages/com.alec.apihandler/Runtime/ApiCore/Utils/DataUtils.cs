@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Best.HTTP;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -14,30 +15,35 @@ namespace Alec.Core
             return JsonConvert.SerializeObject(dictionary);
         }
 
+        public static string ConvertToJSON(Dictionary<string,List<string>> dictionary)
+        {
+            return JsonConvert.SerializeObject(dictionary);
+        }
+
         public static string ConvertToJSON<T>(T model)
         {
             //TODO : 
             return JsonUtility.ToJson(model);
         }
-        public static string GetCurlCommand(UnityWebRequest request,Dictionary<string,string > headers)
+        public static string GetCurlCommand(HTTPRequest request,Dictionary<string,string > headers)
         {
             StringBuilder curlCommand = new StringBuilder("curl");
 
             // Add URL
-            curlCommand.Append($" -X {request.method} '{request.url}'");
+            curlCommand.Append($" -X {request.MethodType} '{request.Uri.ToString()}'");
 
-            // Add Headers
-            foreach (string header in headers.Keys)
-            {
-                curlCommand.Append($" -H '{header}: {request.GetRequestHeader(header)}'");
-            }
+            //// Add Headers
+            //foreach (string header in headers.Keys)
+            //{
+            //    curlCommand.Append($" -H '{header}: {request.GetFirstHeaderValue(header)}'");
+            //}
 
-            // Add POST/PUT data (if any)
-            if (request.uploadHandler != null && request.uploadHandler.data != null && request.uploadHandler.data.Length > 0)
-            {
-                string postData = Encoding.UTF8.GetString(request.uploadHandler.data);
-                curlCommand.Append($" --data-raw '{postData}'");
-            }
+            //// Add POST/PUT data (if any)
+            //if (request.UploadSettings!= null && request.UploadSettings.UploadStream!= null && request.UploadSettings.UploadStream.Length > 0)
+            //{
+            //    string postData = Encoding.UTF8.GetString(request.UploadSettings.UploadStream);
+            //    curlCommand.Append($" --data-raw '{postData}'");
+            //}
 
             return curlCommand.ToString();
         }

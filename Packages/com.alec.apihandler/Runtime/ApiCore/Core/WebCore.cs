@@ -1,10 +1,13 @@
 ﻿using Alec.Api;
+using Best.HTTP;
+using Best.HTTP.JSON.LitJson;
+using Best.HTTP.Request.Settings;
+using Best.HTTP.Request.Upload;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 using UnityEngine;
-using UnityEngine.Networking;
 
 namespace Alec.Core
 {
@@ -49,7 +52,7 @@ namespace Alec.Core
 
         public static void Post<T>(IPostRequest<T> req) where T : Response
         {
-            UnityWebRequest request = new RequestFactory().Post<T>(req);
+            HTTPRequest request = new RequestFactory().Post<T>(req);
 
             /*if (string.IsNullOrEmpty(req.JSONData) == false) */
             setRequestBody(req.JSONData, request);
@@ -60,14 +63,14 @@ namespace Alec.Core
 
         public static void Get<T>(IGetRequest<T> req) where T : Response
         {
-            UnityWebRequest request = new RequestFactory().Get<T>(req);
+            HTTPRequest request = new RequestFactory().Get<T>(req);
             SendRequest(req, request);
 
         }
 
         public static void Put<T>(IPutRequest<T> req) where T : Response
         {
-            UnityWebRequest request = new RequestFactory().Put<T>(req);
+            HTTPRequest request = new RequestFactory().Put<T>(req);
 
             SendRequest(req, request);
 
@@ -75,7 +78,7 @@ namespace Alec.Core
 
         public static void Delete<T>(IDeleteRequest<T> req) where T : Response
         {
-            UnityWebRequest request = new RequestFactory().Delete<T>(req);
+            HTTPRequest request = new RequestFactory().Delete<T>(req);
 
             /*if (string.IsNullOrEmpty(req.JSONData) == false) */
             setRequestBody(req.JSONData, request);
@@ -84,7 +87,7 @@ namespace Alec.Core
 
         }
 
-        private static void SendRequest<T>(IRequest<T> req, UnityWebRequest request) where T : Response
+        private static void SendRequest<T>(IRequest<T> req, HTTPRequest request) where T : Response
         {
             if (!_isInitialized)
             {
@@ -94,97 +97,131 @@ namespace Alec.Core
             _mono.StartCoroutine(Send(req, request));
 
         }
-        private static IEnumerator Send<T>(IRequest<T> req, UnityWebRequest request) where T : Response
+        private static IEnumerator Send<T>(IRequest<T> req, HTTPRequest request) where T : Response
         {
 
             SetRequestHeaders(request);
 
             Debug.Log(DataUtils.GetCurlCommand(request, HEADERS));
-            request.timeout = 20;
-            yield return request.SendWebRequest();
-
-            if (request.result == UnityWebRequest.Result.ConnectionError)
+            
+            yield return request.Send();
+            ErrorResponse error = null;
+            switch (request.State)
             {
-                // TODO : Invoke callback with network error code
-                // Consider sharing this reason with the user to guide their troubleshooting actions.
-                Debug.Log($"Network Error {request.error}");
-                ErrorResponse error = new ErrorResponse(ResponseStatus.INTERNET_ERROR, request.error);
-
-                req.OnResponse(JsonUtility.FromJson<T>(JsonUtility.ToJson(error)));
-            }
-            else if (request.result == UnityWebRequest.Result.DataProcessingError)
-            {
-                // TODO : Invoke callback with network error code
-                // Consider sharing this reason with the user to guide their troubleshooting actions.
-                Debug.Log($"DataProcessingError Error {request.error}");
-                ErrorResponse error = new ErrorResponse(ResponseStatus.DataProcessingError, request.error);
-
-                req.OnResponse(JsonUtility.FromJson<T>(JsonUtility.ToJson(error)));
-            }
-            else if (request.result == UnityWebRequest.Result.ProtocolError)
-            {
-                // TODO : Invoke callback with http error code
-                // Consider sharing this reason with the user to guide their troubleshooting actions.
-                Debug.Log($"Http Error {request.error}");
-
-                if (request.responseCode == 401)
-                    OnTokenExpired?.Invoke();
-                else
-                {
-
-                    try
+                case HTTPRequestStates.Finished:
+                    if (request.Response.IsSuccess)
                     {
+                        // 5. Here we can process the server's response
                         //Debugger.Log("Successful with code : " + request.responseCode);
-                        byte[] result = request.downloadHandler.data;
+                        byte[] result = request.Response.Data;
                         string responseJSON = System.Text.Encoding.Default.GetString(result);
                         //  Debug.Log($"response json : {responseJSON}");
                         T responseObject = null;
-                        responseObject = JsonUtility.FromJson<T>(responseJSON);
-                        Debug.Log($"Response Body:\n{responseJSON}");
-                        Debug.Log($"Response Headers:\n{DataUtils.ConvertToJSON(request.GetResponseHeaders())}");
-                        ErrorResponse error = new ErrorResponse(ResponseStatus.HTTP_ERROR, request.error);
-                        req.OnResponse(JsonUtility.FromJson<T>(JsonUtility.ToJson(error)));
+                        try
+                        {
+                            responseObject = JsonUtility.FromJson<T>(responseJSON);
+                        }
+                        catch (Exception ex)
+                        {
+                            error = new ErrorResponse(ResponseStatus.MODEL_MISMATCH_ERR, $"Failed to deserialize {typeof(T).ToString()}");
+                            responseObject = JsonUtility.FromJson<T>(JsonUtility.ToJson(error));
+                        }
+
+                        if (responseObject.Status == ResponseStatus.NOT_AUTHENTICATED)
+                            OnTokenExpired?.Invoke();
+                        else
+                        {
+                            Debug.Log($"Response Body:\n{responseJSON}");
+                            Debug.Log($"Response Headers:\n{DataUtils.ConvertToJSON(request.Response.Headers)}");
+                            req.OnResponse(responseObject);
+
+                        }
+
                     }
-                    catch (Exception ex)
+                    else
                     {
-                        Debug.Log($"catched Http Error not encapsulated by server");
+                        // 6. Error handling
+                        Debug.Log($"Server sent an error: {request.Response.StatusCode}-{request.Response.Message}");
+                        // TODO : Invoke callback with http error code
+                        // Consider sharing this reason with the user to guide their troubleshooting actions.
+                        Debug.Log($"Http Error {request.Exception}");
 
-                        ErrorResponse error = new ErrorResponse(ResponseStatus.HTTP_ERROR, request.error);
-                        req.OnResponse(JsonUtility.FromJson<T>(JsonUtility.ToJson(error)));
+                        if (request.Response.StatusCode == 401)
+                            OnTokenExpired?.Invoke();
+                        else
+                        {
+
+                            try
+                            {
+                                //Debugger.Log("Successful with code : " + request.responseCode);
+                                byte[] result = request.Response.Data;
+                                string responseJSON = System.Text.Encoding.Default.GetString(result);
+                                //  Debug.Log($"response json : {responseJSON}");
+                                T responseObject = null;
+                                responseObject = JsonUtility.FromJson<T>(responseJSON);
+                                Debug.Log($"Response Body:\n{responseJSON}");
+                                Debug.Log($"Response Headers:\n{DataUtils.ConvertToJSON(request.Response.Headers)}");
+                                error = new ErrorResponse(ResponseStatus.HTTP_ERROR, request.Response.Message);
+                                req.OnResponse(JsonUtility.FromJson<T>(JsonUtility.ToJson(error)));
+                            }
+                            catch (Exception ex)
+                            {
+                                Debug.Log($"catched Http Error not encapsulated by server");
+
+                                error = new ErrorResponse(ResponseStatus.HTTP_ERROR, "Parsing Error Exception");
+                                req.OnResponse(JsonUtility.FromJson<T>(JsonUtility.ToJson(error)));
+                            }
+
+
+                        }
                     }
+                    break;
+                case HTTPRequestStates.ConnectionTimedOut:
+                    // TODO : Invoke callback with network error code
+                    // Consider sharing this reason with the user to guide their troubleshooting actions.
+                    Debug.Log($"Network Error ConnectionTimedOut");
+                    error = new ErrorResponse(ResponseStatus.INTERNET_ERROR, "ConnectionTimedOut");
+
+                    req.OnResponse(JsonUtility.FromJson<T>(JsonUtility.ToJson(error)));
+                    break;
+                case HTTPRequestStates.TimedOut: 
+                    break;
+                default:
+                    // TODO : Invoke callback with http error code
+                    // Consider sharing this reason with the user to guide their troubleshooting actions.
+                    Debug.Log($"Http Error {request.Exception}");
+
+                    if (request.Response.StatusCode == 401)
+                        OnTokenExpired?.Invoke();
+                    else
+                    {
+
+                        try
+                        {
+                            //Debugger.Log("Successful with code : " + request.responseCode);
+                            byte[] result = request.Response.Data;
+                            string responseJSON = System.Text.Encoding.Default.GetString(result);
+                            //  Debug.Log($"response json : {responseJSON}");
+                            T responseObject = null;
+                            responseObject = JsonUtility.FromJson<T>(responseJSON);
+                            Debug.Log($"Response Body:\n{responseJSON}");
+                            Debug.Log($"Response Headers:\n{DataUtils.ConvertToJSON(request.Response.Headers)}");
+                            error = new ErrorResponse(ResponseStatus.HTTP_ERROR, request.Response.Message);
+                            req.OnResponse(JsonUtility.FromJson<T>(JsonUtility.ToJson(error)));
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.Log($"catched Http Error not encapsulated by server");
+
+                            error = new ErrorResponse(ResponseStatus.HTTP_ERROR, "Parsing Error Exception");
+                            req.OnResponse(JsonUtility.FromJson<T>(JsonUtility.ToJson(error)));
+                        }
 
 
-                }
+                    }
+                    break;
             }
-            else
-            {
-                //Debugger.Log("Successful with code : " + request.responseCode);
-                byte[] result = request.downloadHandler.data;
-                string responseJSON = System.Text.Encoding.Default.GetString(result);
-                //  Debug.Log($"response json : {responseJSON}");
-                T responseObject = null;
-                try
-                {
-                    responseObject = JsonUtility.FromJson<T>(responseJSON);
-                }
-                catch (Exception ex)
-                {
-                    ErrorResponse error = new ErrorResponse(ResponseStatus.MODEL_MISMATCH_ERR, $"Failed to deserialize {typeof(T).ToString()}");
-                    responseObject = JsonUtility.FromJson<T>(JsonUtility.ToJson(error));
-                }
-
-                if (responseObject.Status == ResponseStatus.NOT_AUTHENTICATED)
-                    OnTokenExpired?.Invoke();
-                else
-                {
-                    Debug.Log($"Response Body:\n{responseJSON}");
-                    Debug.Log($"Response Headers:\n{DataUtils.ConvertToJSON(request.GetResponseHeaders())}");
-                    req.OnResponse(responseObject);
-
-                }
-
-            }
-            request?.Dispose();
+                       
 
         }
 
@@ -195,11 +232,10 @@ namespace Alec.Core
         /// </summary>
         /// <param name="postData"> usually is in JSON format</param>
         /// <param name="request"> current proccessing request</param>
-        private static void setRequestBody(string postData, UnityWebRequest request)
+        private static void setRequestBody(string postData, HTTPRequest request)
         {
-            byte[] bodyRaw = Encoding.UTF8.GetBytes(postData ?? "");
-            request.uploadHandler = (UploadHandler)new UploadHandlerRaw(bodyRaw);
-            request.downloadHandler = (DownloadHandler)new DownloadHandlerBuffer();
+            //byte[] bodyRaw = Encoding.UTF8.GetBytes(postData ?? "");
+            request.UploadSettings.UploadStream = new JSonDataStream(postData);
         }
 
 
@@ -207,13 +243,13 @@ namespace Alec.Core
         /// Set current HEADERS to a Http request 
         /// </summary>
         /// <param name="request"> request is a UnityWebRequest object</param>
-        private static void SetRequestHeaders(UnityWebRequest request)
+        private static void SetRequestHeaders(HTTPRequest request)
         {
             if (HEADERS == null || HEADERS.Count == 0) return;
 
             foreach (KeyValuePair<string, string> header in HEADERS)
             {
-                request.SetRequestHeader(header.Key, header.Value);
+                request.SetHeader(header.Key, header.Value);
             }
         }
 

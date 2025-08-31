@@ -12,8 +12,15 @@ public class AlecApiHandlerTest : MonoBehaviour
         AlecListener.OnSignup += (userDatamodel) => { AlecNetwork.GetUserProfile(); };
         AlecListener.OnUserProfileFailed += (status,message) => { Debug.Log(status + message); };
         AlecListener.OnUserProfileRecived += (userData) => { Debug.Log(userData); };
-        AlecListener.OnTokenExpired +=()=> { Debug.Log("User Token Expired"); };
+        AlecListener.OnTokenExpired +=()=> {
+            AlecNetwork.SignupAsGuest("Ali");
+            Debug.Log("User Token Expired");
+        };
 
+    }
+    private void Start()
+    {
+        
     }
     // Start is called before the first frame update
     public void ConnectToServer()
@@ -22,7 +29,7 @@ public class AlecApiHandlerTest : MonoBehaviour
     }
     public void SendSampleAPI()
     {
-        AlecNetwork.SignupAsGuest("Ali");
+        AlecNetwork.GetUserProfile();
     }
 
 }
