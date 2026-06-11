@@ -9,7 +9,7 @@ namespace Alec.Core
         #region Url Paths
 
         public static string BASE_URL = "https://puzzle-api.booaligames.ir";
-        private const string API_VERSION = "v{0}/api/app";
+        private const string API_VERSION = "v{0}/api";
 
         #endregion
         public static string CurrentUrl => BASE_URL;

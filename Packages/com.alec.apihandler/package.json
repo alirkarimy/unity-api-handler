@@ -21,7 +21,7 @@
     "url": "https://zfun.com"
   },
   "dependencies": {
-    "com.unity.nuget.newtonsoft-json": "3.2.1",
+    "com.unity.nuget.newtonsoft-json": "3.2.2",
     "com.unity.modules.unitywebrequest": "1.0.0",
     "com.unity.modules.unitywebrequestassetbundle": "1.0.0",
     "com.unity.modules.unitywebrequesttexture": "1.0.0"

@@ -1,4 +1,5 @@
 ﻿using Alec.Api;
+using Newtonsoft.Json;
 using System;
 using UnityEngine;
 
@@ -40,35 +41,53 @@ namespace Alec.Core
         /// Not Ok response message
         /// nullable: true
         /// </summary>
-        string Error { get; }
+        string[] Error { get; }
 
     }
 
     [Serializable]
     public class Response<T> : Response, IResponse<T>
     {
-        [SerializeField] protected T data;
+        public T data { set; get; }
 
         public T Body => data;
+
+        public override string ToString()
+        {
+            return JsonConvert.SerializeObject(Body, Formatting.Indented);
+        }
     }
 
     [Serializable]
     public class Response : IResponse
     {
-        [SerializeField] protected DateTime date;
-        [SerializeField] protected int code;
-        [SerializeField] protected string status;
-        [SerializeField] protected string message;
-        [SerializeField] protected string error;
+        public DateTime date { set; get; }
+        public int code { set; get; }
+        public string status { set; get; }
+        public string message { set; get; }
+
+        [JsonProperty("error")]
+        public string[] error { set; get; }
 
         public DateTime Date => date;
         public int Code => code;
-        public ResponseStatus Status { get { try { return Enum.Parse<ResponseStatus>(status) == ResponseStatus.SUCCEED
-                                            ? ResponseStatus.SUCCEED : (ResponseStatus)code; } 
-                                            catch (Exception ex) { return ResponseStatus.UNKNOWN_ERROR; } } }
+        public ResponseStatus Status
+        {
+            get
+            {
+                try
+                {
+                    ResponseStatus parsed = (ResponseStatus)(code);
+                    return parsed;
+                }
+                catch (Exception ex) { return ResponseStatus.UNKNOWN_ERROR; }
+            }
+        }
         public string Message => message;
-        public string Error => error;
+
+        public string[] Error => error;
     }
+
 
 }
 

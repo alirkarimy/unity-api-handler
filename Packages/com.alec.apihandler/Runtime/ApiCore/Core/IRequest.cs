@@ -28,6 +28,7 @@ namespace Alec.Core
     /// <typeparam name="T"> T must be IResponse</typeparam>
     public interface IRequest<T> : IRequest where T : IResponse
     {
+        Action<T> onResponse { set; get; }
         void OnResponse(T result);
 
 

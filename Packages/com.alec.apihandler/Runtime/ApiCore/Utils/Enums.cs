@@ -9,7 +9,7 @@ namespace Alec.Api
     public enum ResponseStatus
     {
         UNKNOWN_ERROR = 0,
-        SUCCEED = 1,
+        SUCCEED = 200,
         FAILED = 2,
         INVALID_APP = 100,
         INVALID_VERSION = 101,

@@ -83,6 +83,13 @@ namespace Alec.Core
             }
             return false;
         }
+        public static bool IsDnsError(Exception ex)
+        {
+            if (ex is System.Net.Sockets.SocketException se)
+                return se.SocketErrorCode == System.Net.Sockets.SocketError.HostNotFound ||
+                       se.SocketErrorCode == System.Net.Sockets.SocketError.TryAgain;
+            return false;
+        }
     }
 
     [Serializable]
